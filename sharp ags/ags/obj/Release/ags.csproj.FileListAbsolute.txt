@@ -1,0 +1,39 @@
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\bin\Release\ags.exe.config
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\bin\Release\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\bin\Release\ags.pdb
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Release\ags.Form3.resources
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Release\ags.Properties.Resources.resources
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Release\ags.csproj.GenerateResource.cache
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Release\ags.csproj.CoreCompileInputs.cache
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Release\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Release\ags.pdb
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\bin\Release\ags.exe.config
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\bin\Release\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\bin\Release\ags.pdb
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.csprojResolveAssemblyReference.cache
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.Form3.resources
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.Properties.Resources.resources
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.csproj.GenerateResource.cache
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.csproj.CoreCompileInputs.cache
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Release\ags.pdb
+F:\agsC\ags\bin\Release\ags.exe.config
+F:\agsC\ags\bin\Release\ags.exe
+F:\agsC\ags\bin\Release\ags.pdb
+F:\agsC\ags\obj\Release\ags.csprojResolveAssemblyReference.cache
+F:\agsC\ags\obj\Release\ags.Form3.resources
+F:\agsC\ags\obj\Release\ags.Properties.Resources.resources
+F:\agsC\ags\obj\Release\ags.csproj.GenerateResource.cache
+F:\agsC\ags\obj\Release\ags.csproj.CoreCompileInputs.cache
+F:\agsC\ags\obj\Release\ags.exe
+F:\agsC\ags\obj\Release\ags.pdb
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\bin\Release\ags.exe.config
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\bin\Release\ags.exe
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\bin\Release\ags.pdb
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.csprojResolveAssemblyReference.cache
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.Form3.resources
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.Properties.Resources.resources
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.csproj.GenerateResource.cache
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.csproj.CoreCompileInputs.cache
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.exe
+D:\Учёба 2018 [2]\Наука\agsSharp\ags\obj\Release\ags.pdb
