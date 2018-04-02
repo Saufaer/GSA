@@ -1,0 +1,30 @@
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\bin\Debug\ags.exe.config
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\bin\Debug\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\bin\Debug\ags.pdb
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.csprojResolveAssemblyReference.cache
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.Properties.Resources.resources
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.csproj.GenerateResource.cache
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.csproj.CoreCompileInputs.cache
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.pdb
+D:\Учёба 2018 [2]\Наука\sharp\ags\ags\obj\Debug\ags.Form3.resources
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\bin\Debug\ags.exe.config
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\bin\Debug\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\bin\Debug\ags.pdb
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.csprojResolveAssemblyReference.cache
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.Form3.resources
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.Properties.Resources.resources
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.csproj.GenerateResource.cache
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.csproj.CoreCompileInputs.cache
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.exe
+D:\Учёба 2018 [2]\Наука\sharp\agsC\ags\obj\Debug\ags.pdb
+F:\agsC\ags\bin\Debug\ags.exe.config
+F:\agsC\ags\bin\Debug\ags.exe
+F:\agsC\ags\bin\Debug\ags.pdb
+F:\agsC\ags\obj\Debug\ags.csprojResolveAssemblyReference.cache
+F:\agsC\ags\obj\Debug\ags.Form3.resources
+F:\agsC\ags\obj\Debug\ags.Properties.Resources.resources
+F:\agsC\ags\obj\Debug\ags.csproj.GenerateResource.cache
+F:\agsC\ags\obj\Debug\ags.csproj.CoreCompileInputs.cache
+F:\agsC\ags\obj\Debug\ags.exe
+F:\agsC\ags\obj\Debug\ags.pdb
