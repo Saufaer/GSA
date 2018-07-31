@@ -1,15 +1,15 @@
 #include "Optim.h"
 using namespace std;
-Pointer global::Mapa()
+global::Pointer global::Serial_Search()
 {
-    RZ rz;
+    RZ rz;//контейнер
     Pointer point;//структура - результат
     point.steps = 1;//шаги
+    currentE = right - left; //текущая точность решения
 
-
+    //--------------------------------------------первая итерация алгоритма
     newX = (right + left) / 2;//первая новая точка - середина отрезка
-
-//вставка первых трёх XRZ
+    //вставка первых трёх XRZ
     rz.z = func(left);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(left, rz));
@@ -22,32 +22,34 @@ Pointer global::Mapa()
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(right, rz));
 
-    //вставка первых двух МХ
-    map <double, RZ>::iterator it = ++(XRZ.begin());
-    MX.insert(pair<double, double>(Calculate_M(newX, left, XRZ.at(newX).z, XRZ.at(left).z), it->first));
-    ++it;
-    MX.insert(pair<double, double>(Calculate_M(right, newX, XRZ.at(right).z, XRZ.at(newX).z), it->first));
+    //поиск макс М среди двух
+    double rightM = Calculate_M(right, newX, XRZ.at(right).z, XRZ.at(newX).z);
 
-
+    maxM = Calculate_M(newX, left, XRZ.at(newX).z, XRZ.at(left).z);;
+    if (maxM < rightM)
+    {
+        maxM = rightM;
+    }
+ 
     double m; //оценка константы Липшица
     double maxR;//инициализация временной макс R
-    map <double, RZ>::iterator num;
-    map <double, RZ>::iterator backnum;
-    currentE = 1; //текущая точность решения
 
+    map <double, RZ>::iterator num;//итератор для интервала с макс R
+    map <double, RZ>::iterator backnum;//итератор на его левую границу
 
+    double itcurE;//точность на текущем интервале
+
+    //------------------------------------------------основной цикл алгоритма
     while (true)
     {
-        maxR = XRZ.at(left).R;
+        maxR = XRZ.at(newX).R;
         //пересчёт характеристик
         m = Calculate_m();//поиск m
-
         for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin() // Определение интервала с максимальным R
             ; it != XRZ.end();
             ++back, ++it
             )
         {
-
             (it)->second.R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
 
             if (XRZ.at(it->first).R > maxR)
@@ -56,12 +58,13 @@ Pointer global::Mapa()
                 num = it;//запоминаю номер интервала (индекс его правой границы)
                 backnum = back;
             }
-            if (it->first - back->first < currentE)
+
+            itcurE = it->first - back->first;//точность на текущем итервале
+            if (itcurE < currentE)
             {
-                currentE = abs(it->first - back->first);//текущая точность
+                currentE = itcurE;//точность решения
             }
         }
-
         if (currentE <= E)//выход по точности
         {
             break;
@@ -69,7 +72,7 @@ Pointer global::Mapa()
 
         newX = Calculate_X(m, num, backnum);//нахожу следующую точку испытания в найденном интервале
 
-          //заноc x и z в базу
+        //заноc x и z в базу
         rz.R = 0;
         rz.z = func(newX);
         XRZ.insert(pair<double, RZ>(newX, rz));
@@ -83,7 +86,7 @@ Pointer global::Mapa()
     }
 
     point.x = newX;
-    point.z = func(newX);
+    point.z = rz.z;
     return point;
 
 

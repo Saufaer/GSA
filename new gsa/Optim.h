@@ -11,110 +11,65 @@
 #include <omp.h>
 #include <map>
 
-//Структура для хранения результата 
-struct Pointer
-{
-    double x, z;
-    int steps;
-};
-
-
-struct RZ
-{
-    double R, z;
-
-};
-
 class global
 {
 private:
 
-public:
-    std::map <double, RZ> XRZ;
-    std::map <double, double> MX;
-    double left, right;
-    double r;
-    double E;
-    int Nmax;
+    //рабочие структуры данных
+    
+    struct RZ//Структура для контейнера в XRZ
+    {
+        double R, z;
+    };
+    std::map <double, RZ> XRZ;//база, содеражащая x, R , z 
+                              //XRZ упорядочена по возрастанию ключа х 
+                             
 
-    double currentE = 0;
+    //изменяемые переменные
+    double currentE;//текущая точность решения
+
+    double newX;//новая точка х
+    double newXback;//точка х передшествующая newX
+
+    double newM;//М на новом интервале
+    double maxM;//максимальная М в текущей области
+
+    double xl, xr, zl, zr;//переменные для работы с итераторами
+
+    //целевая функция
+    double func(const double x);
+
+    //подсчёт M на заданном интервале
+    double Calculate_M(double xr, double xl, double zr, double zl);
+
+    //  оценка константы Липшица
+    double Calculate_m();
+
+    //подсчёт новой точки испытания
+    double Calculate_X(double m, std::map <double, RZ>::iterator num, std::map <double, RZ>::iterator backnum);
+
+    //подсчёт характеристики на заданном интервале
+    double Calculate_R(double m, std::map <double, RZ>::iterator it, std::map <double, RZ>::iterator back);
+
+
+public:
+    //входные параметры
+    double left, right;//стартовые границы области
+    double r;//параметр метода
+    double E;//граница выхода по точности
+    int Nmax;//граница выхода по числу шагов
+
     double * coeff = new double[4];
 
-    double newX;
-
-    double func(const double x)
+    //Структура для хранения результата 
+    struct Pointer
     {
-        //return sin(x) + sin((10. * x) / 3.);
-        //return (3 * x - 14)*sin(1.8 * x);
-        //return -x + sin(3 * x) - 1;
-        return coeff[0] * sin(coeff[1] * x) + coeff[2] * cos(coeff[3] * x);
+        double x, z;
+        int steps;
     };
-    Pointer Mapa();
 
-
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    double xl;
-    double xr;
-
-    double zl;
-    double zr;
-
-    double newM;
-    double newXback;
-     double Calculate_M(double xr, double xl, double zr, double zl)
-     {
-     return abs(zr - zl) / (xr - xl);
-     }
-    //  оценка константы Липшица
-    double Calculate_m()
-    {
-        //подсчёт M
-       std::map <double, RZ>::iterator YYback = --XRZ.find(newX);//поиск итератора перед newX в XRZ
-       std::map <double, RZ>::iterator YY = XRZ.find(newX);
-
-        newXback = YYback->first;//значение х перед newX
-
-       
-        zr = YY->second.z;
-        zl = YYback->second.z;
-
-        newM = Calculate_M(newX, newXback, zr, zl);//подсчёт нового М
-
-        MX.insert(std::pair<double, double>(newM, newX));//занесение М в базу (максимальный в конце)
-        //TODO придумать как можно использовать контейнер х
-
-       double M ;     
-       M = MX.rbegin()->first;//получение макс М по ключу
-        if (M > 0)
-        {
-            return r * M;
-        }
-        else //M==0
-        {
-            return 1.0;
-        }
-    }
-    double Calculate_X(double m, std::map <double, RZ>::iterator num, std::map <double, RZ>::iterator backnum)
-    {
-        xr = num->first;
-        xl = backnum->first;
-
-        zr = num->second.z;
-        zl = backnum->second.z;
-
-        return 0.5 * (xr + xl) - (zr -zl) / (2.0 * m);
-    }
-    double Calculate_R(double m, std::map <double, RZ>::iterator it, std::map <double, RZ>::iterator back)
-    {
-        xr = it->first;
-        xl = back->first;
-
-        zr = it->second.z;
-        zl = back->second.z;
-        return m * (xr - xl) + (((zr - zl) *
-            (zr - zl)) / (m * (xr - xl))) -
-            2 * (zr + zl);
-    }
+    //последовательный решатель задачи
+    Pointer Serial_Search();
 };
 
 #endif
