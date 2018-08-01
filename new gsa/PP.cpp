@@ -41,11 +41,13 @@ global::Pointer global::PP()
     double itcurE;//точность на текущем интервале
 
 
-    omp_set_dynamic(0);//среда выполнения не будет динамически настроить количество потоков
-    omp_set_num_threads(procs);//установим число нужных потоков
+                  //omp_set_dynamic(0);//среда выполнения не будет динамически настроить количество потоков
+                  //omp_set_num_threads(procs);//установим число нужных потоков
 
 
-                               //------------------------------------------------основной цикл алгоритма
+                  //------------------------------------------------основной цикл алгоритма
+
+
     while (true)
     {
 
@@ -55,6 +57,7 @@ global::Pointer global::PP()
         num = ++(XRZ.begin());
         backnum = XRZ.begin();
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+        st = omp_get_wtime();
         if (XRZ.size() >= procs + 1)
         {
 #pragma omp parallel for num_threads(procs)
@@ -80,31 +83,29 @@ global::Pointer global::PP()
                         if (it == ++XRZ.find(bb[i].shiftr)) { break; }
                     }
 
-                    (it)->second.R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
+                    double R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
 
-                    if (XRZ.at(it->first).R > bb[i].R)
+                    if (R > bb[i].R)
                     {
                         //////////////////////////////
 
-                        bb[i].R = XRZ.at(it->first).R;
+                        bb[i].R = R;
                         bb[i].num = it;
                         bb[i].backnum = back;
                         /////////////////////////////////
                     }
 
-                    itcurE = it->first - back->first;//точность на текущем итервале
-                    if (itcurE < currentE)
-                    {
-                        currentE = itcurE;//точность решения
-                    }
+                    //itcurE = it->first - back->first;//точность на текущем итервале
+                    //if (itcurE < currentE)
+                    //{
+                    //    currentE = itcurE;//точность решения
+                    //}
                     ++it; ++back;
                 }
             }
 
-            if (currentE <= E)//выход по точности
-            {
-                break;
-            }
+
+
 
             ///////////////////////////////////////
 
@@ -121,7 +122,6 @@ global::Pointer global::PP()
 
             ///////////////////////////////////////
         }/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
         else
         {
             for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin() // Определение интервала с максимальным R
@@ -129,28 +129,28 @@ global::Pointer global::PP()
                 ++back, ++it
                 )
             {
-                (it)->second.R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
+                double R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
 
-                if (XRZ.at(it->first).R > maxR)
+                if (R > maxR)
                 {
-                    maxR = XRZ.at(it->first).R;
+                    maxR = R;
                     num = it;//запоминаю номер интервала (индекс его правой границы)
                     backnum = back;
 
                 }
 
-                itcurE = it->first - back->first;//точность на текущем итервале
-                if (itcurE < currentE)
-                {
-                    currentE = itcurE;//точность решения
-                }
+                //itcurE = it->first - back->first;//точность на текущем итервале
+                //if (itcurE < currentE)
+                //{
+                //    currentE = itcurE;//точность решения
+                //}
             }
-            if (currentE <= E)//выход по точности
-            {
-                break;
-            }
+
         }
 
+        fn = omp_get_wtime();
+        time = fn - st;
+        alltime += time;
         newX = Calculate_X(m, num, backnum);//нахожу следующую точку испытания в найденном интервале
 
 
@@ -159,6 +159,11 @@ global::Pointer global::PP()
         rz.z = func(newX);
         XRZ.insert(pair<double, RZ>(newX, rz));
 
+        currentE = newX - (--XRZ.find(newX))->first;
+        if (currentE <= E)//выход по точности
+        {
+            break;
+        }
         ////////////////////////////////////////////////////стартовое распределение
         if (XRZ.size() == procs + 1)
         {
@@ -178,7 +183,7 @@ global::Pointer global::PP()
         //схема с весом
         if (XRZ.size() > procs + 1)
         {
-#pragma omp parallel for num_threads(procs)
+
             for (int i = 0; i < procs; i++)
             {
                 if ((newX < bb[i].shiftr) && (newX > bb[i].shiftl))//определение где новый х
@@ -190,11 +195,18 @@ global::Pointer global::PP()
                 {
                     if (bb[i].weight > bb[i + 1].weight + 1)
                     {
+                        /*  st = omp_get_wtime();*/
 
                         bb[i].shiftr = (--(XRZ.find(bb[i].shiftr)))->first;
                         bb[i + 1].shiftl = (--(XRZ.find(bb[i + 1].shiftl)))->first;
                         bb[i].weight--;
                         bb[i + 1].weight++;
+
+                        /*                    fn  = omp_get_wtime();
+                        time = fn - st;
+                        alltime += time;
+                        */
+                        operations++;
                     }
                 }
                 if ((i != procs - 1) && (bb[i + 1].weight != 0))
@@ -202,11 +214,18 @@ global::Pointer global::PP()
 
                     if (bb[i].weight < bb[i + 1].weight - 1)
                     {
+                        /*st = omp_get_wtime();*/
 
                         bb[i].shiftr = (++(XRZ.find(bb[i].shiftr)))->first;
                         bb[i + 1].shiftl = (++(XRZ.find(bb[i + 1].shiftl)))->first;
                         bb[i].weight++;
                         bb[i + 1].weight--;
+
+                        //fn = omp_get_wtime();
+                        //time = fn - st;
+                        //alltime += time;
+
+                        operations++;
                     }
                 }
 
