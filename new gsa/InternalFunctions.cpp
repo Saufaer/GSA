@@ -17,21 +17,27 @@ double global::Calculate_M(double xr, double xl, double zr, double zl)
 //  оценка константы Липшица
 double global::Calculate_m()
 {
-    //подсчёт M
-    std::map <double, RZ>::iterator itback = --XRZ.find(newX);//поиск итератора перед newX в XRZ
-    std::map <double, RZ>::iterator it = XRZ.find(newX);//поиск итератора на newX в XRZ
+    std::map <double, RZ>::iterator itNewX = XRZ.find(newX);
+    std::map <double, RZ>::iterator itleft = --XRZ.find(newX);
+    std::map <double, RZ>::iterator itright = ++XRZ.find(newX);
 
-    newXback = itback->first;//значение х перед newX
-
-    zr = it->second.z; //значение z на newX
-    zl = itback->second.z;//значение z перед newX
-
-    newM = Calculate_M(newX, newXback, zr, zl);//подсчёт нового М
+    newM = Calculate_M(itNewX->first, itleft->first, itNewX->second.z, itleft->second.z);//подсчёт нового М слева от newX
 
     if (maxM < newM)//проверка максимальный ли он
     {
         maxM = newM;
     }
+
+    if (XRZ.size() > 2)
+    {
+        newM = Calculate_M(itright->first, itNewX->first, itright->second.z, itNewX->second.z);//подсчёт нового М справа от newX
+
+        if (maxM < newM)//проверка максимальный ли он
+        {
+            maxM = newM;
+        }
+    }
+
     //подсчёт m
     if (maxM > 0)
     {

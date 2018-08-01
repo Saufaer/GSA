@@ -4,47 +4,38 @@ global::Pointer global::Serial_Search()
 {
     RZ rz;//контейнер
     Pointer point;//структура - результат
-    point.steps = 1;//шаги
+    point.steps = 0;//шаги
     currentE = right - left; //текущая точность решения
+                             //--------------------------------------------первая итерация алгоритма
 
-    //--------------------------------------------первая итерация алгоритма
-    newX = (right + left) / 2;//первая новая точка - середина отрезка
-    //вставка первых трёх XRZ
     rz.z = func(left);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(left, rz));
-
-    rz.z = func(newX);
-    rz.R = 0;
-    XRZ.insert(pair<double, RZ>(newX, rz));
-
     rz.z = func(right);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(right, rz));
 
-    //поиск макс М среди двух
-    double rightM = Calculate_M(right, newX, XRZ.at(right).z, XRZ.at(newX).z);
+    maxM = Calculate_M(right, left, XRZ.at(right).z, XRZ.at(left).z);
+    newX = right;
 
-    maxM = Calculate_M(newX, left, XRZ.at(newX).z, XRZ.at(left).z);;
-    if (maxM < rightM)
-    {
-        maxM = rightM;
-    }
- 
-    double m; //оценка константы Липшица
-    double maxR;//инициализация временной макс R
+    double m = Calculate_m(); //оценка константы Липшица
 
-    map <double, RZ>::iterator num;//итератор для интервала с макс R
-    map <double, RZ>::iterator backnum;//итератор на его левую границу
+    map <double, RZ>::iterator num = ++(XRZ.begin());//итератор для интервала с макс R
+    map <double, RZ>::iterator backnum = (XRZ.begin());//итератор на его левую границу
+    double maxR = Calculate_R(m, num, backnum);;//инициализация временной макс R
 
     double itcurE;//точность на текущем интервале
 
-    //------------------------------------------------основной цикл алгоритма
+                  //------------------------------------------------основной цикл алгоритма
     while (true)
     {
-        maxR = XRZ.at(newX).R;
+        maxR = (++(XRZ.begin()))->second.R;
         //пересчёт характеристик
         m = Calculate_m();//поиск m
+
+        num = ++(XRZ.begin());
+        backnum = (XRZ.begin());
+
         for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin() // Определение интервала с максимальным R
             ; it != XRZ.end();
             ++back, ++it
@@ -57,6 +48,7 @@ global::Pointer global::Serial_Search()
                 maxR = XRZ.at(it->first).R;
                 num = it;//запоминаю номер интервала (индекс его правой границы)
                 backnum = back;
+
             }
 
             itcurE = it->first - back->first;//точность на текущем итервале
@@ -72,7 +64,7 @@ global::Pointer global::Serial_Search()
 
         newX = Calculate_X(m, num, backnum);//нахожу следующую точку испытания в найденном интервале
 
-        //заноc x и z в базу
+                                            //заноc x и z в базу
         rz.R = 0;
         rz.z = func(newX);
         XRZ.insert(pair<double, RZ>(newX, rz));
