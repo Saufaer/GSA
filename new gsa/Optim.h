@@ -16,16 +16,17 @@ class global
 private:
 
     //рабочие структуры данных
-    
+
     struct RZ//—труктура дл€ контейнера в XRZ
     {
-        double R, z;
+        double R, z, proc;
     };
     std::map <double, RZ> XRZ;//база, содеражаща€ x, R , z 
                               //XRZ упор€дочена по возрастанию ключа х 
-                             
 
-    //измен€емые переменные
+
+
+                              //измен€емые переменные
     double currentE;//текуща€ точность решени€
 
     double newX;//нова€ точка х
@@ -36,7 +37,7 @@ private:
 
     double xl, xr, zl, zr;//переменные дл€ работы с итераторами
 
-    //целева€ функци€
+                          //целева€ функци€
     double func(const double x);
 
     //подсчЄт M на заданном интервале
@@ -58,7 +59,7 @@ public:
     double r;//параметр метода
     double E;//граница выхода по точности
     int Nmax;//граница выхода по числу шагов
-
+    int procs;
     double * coeff = new double[4];
 
     //—труктура дл€ хранени€ результата 
@@ -70,6 +71,7 @@ public:
 
     //последовательный решатель задачи
     Pointer Serial_Search();
+    Pointer PP();
 };
 
 #endif
