@@ -21,13 +21,6 @@ global::Pointer global::PP()
     };
     //--------------------------------------------первая итерация алгоритма
     vector <bord> bb(procs);
-    for (int i = 0; i < procs; i++)
-    {
-        bb[i].shiftl = left + i * (right - left) / procs;
-        bb[i].shiftr = bb[i].shiftl + (right - left) / procs;
-
-    }
-
 
     rz.z = func(left);
     rz.R = 0;
@@ -51,17 +44,14 @@ global::Pointer global::PP()
     omp_set_dynamic(0);//среда выполнения не будет динамически настроить количество потоков
     omp_set_num_threads(procs);//установим число нужных потоков
 
+
                                //------------------------------------------------основной цикл алгоритма
     while (true)
     {
 
+
         maxR = (++(XRZ.begin()))->second.R;
-
-        //пересчёт характеристик
-        m = Calculate_m();//поиск m
-
-
-
+        m = Calculate_m();//поиск m       
         num = ++(XRZ.begin());
         backnum = XRZ.begin();
         /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -70,10 +60,12 @@ global::Pointer global::PP()
 #pragma omp parallel for num_threads(procs)
             for (int i = 0; i < procs; i++)
             {
-                bb[i].R = (++(XRZ.find(bb[i].shiftl)))->second.R;
+
                 bb[i].num = (++(XRZ.find(bb[i].shiftl)));
                 bb[i].backnum = ((XRZ.find(bb[i].shiftl)));
-                map <double, RZ>::iterator it = ++(XRZ.find(bb[i].shiftl)), back = XRZ.find(bb[i].shiftl);
+                bb[i].R = bb[i].num->second.R;
+
+                map <double, RZ>::iterator it = bb[i].num, back = bb[i].backnum;
                 while (true)
                 {
                     if (i == procs - 1)
@@ -85,13 +77,15 @@ global::Pointer global::PP()
                     }
                     else
                     {
-                        if (it == ++XRZ.find(bb[i + 1].shiftr)) { break; }
+                        if (it == ++XRZ.find(bb[i].shiftr)) { break; }
                     }
+
                     (it)->second.R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
 
                     if (XRZ.at(it->first).R > bb[i].R)
                     {
                         //////////////////////////////
+
                         bb[i].R = XRZ.at(it->first).R;
                         bb[i].num = it;
                         bb[i].backnum = back;
@@ -113,6 +107,7 @@ global::Pointer global::PP()
             }
 
             ///////////////////////////////////////
+
             for (int i = 0; i < procs; i++)
             {
                 if (maxR < bb[i].R)
@@ -123,6 +118,7 @@ global::Pointer global::PP()
                 }
 
             }
+
             ///////////////////////////////////////
         }/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -163,7 +159,7 @@ global::Pointer global::PP()
         rz.z = func(newX);
         XRZ.insert(pair<double, RZ>(newX, rz));
 
-        ////////////////////////////////////////////////////
+        ////////////////////////////////////////////////////стартовое распределение
         if (XRZ.size() == procs + 1)
         {
             int i = 0;
@@ -174,12 +170,53 @@ global::Pointer global::PP()
             {
                 bb[i].shiftl = back->first;
                 bb[i].shiftr = it->first;
+                bb[i].weight = 0;
                 i++;
             }
 
         }
-        //TODO схема с весом
+        //схема с весом
+        if (XRZ.size() > procs + 1)
+        {
+#pragma omp parallel for num_threads(procs)
+            for (int i = 0; i < procs; i++)
+            {
+                if ((newX < bb[i].shiftr) && (newX > bb[i].shiftl))//определение где новый х
+                {
+                    bb[i].weight++;
+                }
+
+                if ((i != procs - 1) && (bb[i].weight != 0))//узел i влево
+                {
+                    if (bb[i].weight > bb[i + 1].weight + 1)
+                    {
+
+                        bb[i].shiftr = (--(XRZ.find(bb[i].shiftr)))->first;
+                        bb[i + 1].shiftl = (--(XRZ.find(bb[i + 1].shiftl)))->first;
+                        bb[i].weight--;
+                        bb[i + 1].weight++;
+                    }
+                }
+                if ((i != procs - 1) && (bb[i + 1].weight != 0))
+                {
+
+                    if (bb[i].weight < bb[i + 1].weight - 1)
+                    {
+
+                        bb[i].shiftr = (++(XRZ.find(bb[i].shiftr)))->first;
+                        bb[i + 1].shiftl = (++(XRZ.find(bb[i + 1].shiftl)))->first;
+                        bb[i].weight++;
+                        bb[i + 1].weight--;
+                    }
+                }
+
+
+            }
+
+        }
         /////////////////////////////////////////////////////
+
+
         point.steps++;
 
         if (point.steps == Nmax)//выход по числу шагов
