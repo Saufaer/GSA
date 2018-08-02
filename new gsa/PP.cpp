@@ -6,16 +6,6 @@ global::Pointer global::PP()
     Pointer point;//структура - результат
     point.steps = 0;//шаги
     currentE = right - left; //текуща€ точность решени€
-
-    struct resp
-    {
-        double R, x;
-    };
-
-
-    //--------------------------------------------перва€ итераци€ алгоритма
-
-
     rz.z = func(left);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(left, rz));
@@ -35,7 +25,12 @@ global::Pointer global::PP()
     double itcurE;//точность на текущем интервале
 
 
-
+                  //#pragma omp critical
+                  //    { double st = omp_get_wtime();
+                  //    double fn = omp_get_wtime();
+                  //    double time = fn - st;
+                  //    alltime += time;
+                  //    }
 
 
                   //------------------------------------------------основной цикл алгоритма
@@ -47,12 +42,14 @@ global::Pointer global::PP()
         m = Calculate_m();//поиск m       
         num = ++(XRZ.begin());
         backnum = XRZ.begin();
-        st = omp_get_wtime();
+
+
         if ((XRZ.size() >= procs + 1) && (procs != 1))
         {
 #pragma omp parallel for num_threads(procs)
             for (int i = 0; i < procs; i++)
             {
+
 
                 bb[i].num = (++(XRZ.find(bb[i].shiftl)));
 
@@ -66,8 +63,31 @@ global::Pointer global::PP()
 
                 it = bb[i].num; back = bb[i].backnum;
 
+
                 while (true)
                 {
+                    double xr = it->first;
+                    double xl = back->first;
+                    double zr = it->second.z;
+                    double zl = back->second.z;
+                    double R = m * (xr - xl) + (((zr - zl) *
+                        (zr - zl)) / (m * (xr - xl))) -
+                        2 * (zr + zl);
+
+
+                    if (R > bb[i].R)
+                    {
+                        //////////////////////////////
+
+                        bb[i].R = R;
+                        bb[i].num = it;
+                        bb[i].backnum = back;
+
+
+                        /////////////////////////////////
+                    }
+
+                    ++it; ++back;
                     if (i == procs - 1)
                     {
                         if (it == XRZ.end())
@@ -79,31 +99,10 @@ global::Pointer global::PP()
                     {
                         if (it == ++XRZ.find(bb[i].shiftr)) { break; }
                     }
-
-                    double xr = it->first;
-                    double xl = back->first;
-                    double zr = it->second.z;
-                    double zl = back->second.z;
-                    bb[i].Rcur = m * (xr - xl) + (((zr - zl) *
-                        (zr - zl)) / (m * (xr - xl))) -
-                        2 * (zr + zl);
-
-
-                    if (bb[i].Rcur  > bb[i].R)
-                    {
-                        //////////////////////////////
-
-                        bb[i].R = bb[i].Rcur;
-                        bb[i].num = it;
-                        bb[i].backnum = back;
-
-
-                        /////////////////////////////////
-                    }
-
-                    ++it; ++back;
-
                 }
+
+
+
             }
             ///////////////////////////////////////
 
@@ -122,17 +121,22 @@ global::Pointer global::PP()
         }
         else//если недостаточно интервалов или procs==1
         {
+            double xr;
+            double xl;
+            double zr;
+            double zl;
+            double R;
             for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin() // ќпределение интервала с максимальным R
                 ; it != XRZ.end();
                 ++back, ++it
                 )
             {
 
-                double xr = it->first;
-                double xl = back->first;
-                double zr = it->second.z;
-                double zl = back->second.z;
-                double R = m * (xr - xl) + (((zr - zl) *
+                xr = it->first;
+                xl = back->first;
+                zr = it->second.z;
+                zl = back->second.z;
+                R = m * (xr - xl) + (((zr - zl) *
                     (zr - zl)) / (m * (xr - xl))) -
                     2 * (zr + zl);
 
@@ -145,15 +149,9 @@ global::Pointer global::PP()
                 }
             }
 
+
         }
-
-        fn = omp_get_wtime();
-        time = fn - st;
-        alltime += time;
-
         newX = Calculate_X(m, num, backnum);//нахожу следующую точку испытани€ в найденном интервале
-
-
                                             //заноc x и z в базу
         rz.R = 0;
         rz.z = func(newX);
@@ -165,6 +163,7 @@ global::Pointer global::PP()
             break;
         }
         ////////////////////////////////////////////////////стартовое распределение
+
         if (XRZ.size() == procs + 1)
         {
             int i = 0;
@@ -181,7 +180,9 @@ global::Pointer global::PP()
             }
 
         }
+
         //схема с весом
+
         if (XRZ.size() > procs + 1)
         {
             for (int i = 0; i < procs; i++)
@@ -196,17 +197,12 @@ global::Pointer global::PP()
                 {
                     if (bb[i].weight > bb[i + 1].weight + 1)
                     {
-                        /*  st = omp_get_wtime();*/
 
                         bb[i].shiftr = (--(XRZ.find(bb[i].shiftr)))->first;
                         bb[i + 1].shiftl = (--(XRZ.find(bb[i + 1].shiftl)))->first;
                         bb[i].weight--;
                         bb[i + 1].weight++;
 
-                        /*                    fn  = omp_get_wtime();
-                        time = fn - st;
-                        alltime += time;
-                        */
                         operations++;
                     }
                 }
@@ -215,16 +211,11 @@ global::Pointer global::PP()
 
                     if (bb[i].weight < bb[i + 1].weight - 1)
                     {
-                        /*st = omp_get_wtime();*/
 
                         bb[i].shiftr = (++(XRZ.find(bb[i].shiftr)))->first;
                         bb[i + 1].shiftl = (++(XRZ.find(bb[i + 1].shiftl)))->first;
                         bb[i].weight++;
                         bb[i + 1].weight--;
-
-                        //fn = omp_get_wtime();
-                        //time = fn - st;
-                        //alltime += time;
 
                         operations++;
                     }
@@ -234,6 +225,7 @@ global::Pointer global::PP()
             }
 
         }
+
         /////////////////////////////////////////////////////
 
 
