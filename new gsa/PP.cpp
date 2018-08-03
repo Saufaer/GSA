@@ -6,29 +6,6 @@ global::Pointer global::PP()
     Pointer point;//структура - результат
     point.steps = 0;//шаги
     currentE = right - left; //текущая точность решения
-
-    struct resp
-    {
-        double R,x;
-    };
-    int procs = 5;        
-    struct bord
-    {
-        double shiftl, shiftr;
-        double R, x;
-        map <double, RZ>::iterator num;
-        map <double, RZ>::iterator backnum;
-    };
-    //--------------------------------------------первая итерация алгоритма
-    vector <bord> bb(procs);
-    for (int i = 0; i < procs; i++)
-    {
-        bb[i].shiftl = left + i * (right - left) / procs;
-        bb[i].shiftr = bb[i].shiftl + (right - left) / procs;
-
-    }
-
-
     rz.z = func(left);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(left, rz));
@@ -43,78 +20,151 @@ global::Pointer global::PP()
 
     map <double, RZ>::iterator num = ++(XRZ.begin());//итератор для интервала с макс R
     map <double, RZ>::iterator backnum = (XRZ.begin());//итератор на его левую границу
-    double maxR = Calculate_R(m, num, backnum);;//инициализация временной макс R
+    double maxR = Calculate_R(m, num, backnum);//инициализация временной макс R
 
-    double itcurE;//точность на текущем интервале
+                                               //------------------------------------------------основной цикл алгоритма
 
-
-    omp_set_dynamic(0);//среда выполнения не будет динамически настроить количество потоков
-    omp_set_num_threads(procs);//установим число нужных потоков
-
-                  //------------------------------------------------основной цикл алгоритма
+    vector <bord> bb(procs);
     while (true)
     {
-        
+
+        ////////////////////////////////////////////////////стартовое распределение
+
+
+        if (XRZ.size() == procs + 1)
+        {
+            int i = 0;
+            for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin()
+                ; it != XRZ.end();
+                ++back, ++it
+                )
+            {
+
+                bb[i].shiftl = back->first;
+                bb[i].shiftr = it->first;
+                bb[i].weight = 0;
+
+                i++;
+            }
+
+        }
+
+        //схема с весом
+
+        if (XRZ.size() > procs + 1)
+        {
+            for (int i = 0; i < procs; i++)
+            {
+                if ((newX < bb[i].shiftr) && (newX > bb[i].shiftl))//определение где новый х
+                {
+                    bb[i].weight++;
+
+
+                }
+
+                if ((i != procs - 1) && (bb[i].weight != 0))//узел i влево
+                {
+                    if (bb[i].weight > bb[i + 1].weight + 1)
+                    {
+
+                        bb[i].shiftr = (--(XRZ.find(bb[i].shiftr)))->first;
+                        bb[i + 1].shiftl = (--(XRZ.find(bb[i + 1].shiftl)))->first;
+                        bb[i].weight--;
+                        bb[i + 1].weight++;
+
+                        operations++;
+                    }
+                }
+                if ((i != procs - 1) && (bb[i + 1].weight != 0))
+                {
+
+                    if (bb[i].weight < bb[i + 1].weight - 1)
+                    {
+
+                        bb[i].shiftr = (++(XRZ.find(bb[i].shiftr)))->first;
+                        bb[i + 1].shiftl = (++(XRZ.find(bb[i + 1].shiftl)))->first;
+                        bb[i].weight++;
+                        bb[i + 1].weight--;
+
+                        operations++;
+                    }
+                }
+
+
+            }
+
+        }
+
+        /////////////////////////////////////////////////////
+
+
+
+
+
         maxR = (++(XRZ.begin()))->second.R;
-        
-        //пересчёт характеристик
-        m = Calculate_m();//поиск m
-
-
-        
+        m = Calculate_m();//поиск m 
         num = ++(XRZ.begin());
         backnum = XRZ.begin();
 
-        if (XRZ.size() >= procs+1)
+
+        if ((XRZ.size() >= procs + 1) && (procs != 1))
         {
-            #pragma omp parallel for num_threads(procs)
+#pragma omp parallel for num_threads(procs)
             for (int i = 0; i < procs; i++)
             {
-                bb[i].R = (++(XRZ.find(bb[i].shiftl)))->second.R;
-                bb[i].num = (++(XRZ.find(bb[i].shiftl)));
-                bb[i].backnum = ((XRZ.find(bb[i].shiftl)));
-                //for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin() // Определение интервала с максимальным R
-                //    ; it != XRZ.end();
-                //    ++back, ++it
-                //    )
-                map <double, RZ>::iterator it = ++(XRZ.find(bb[i].shiftl)), back = XRZ.find(bb[i].shiftl);
+
+
+                bb[i].num = ((XRZ.find(bb[i].shiftl)));
+
+
+                bb[i].backnum = bb[i].num;
+                ++bb[i].num;
+
+                bb[i].R = bb[i].num->second.R;
+
+
+
+                bb[i].curnum = bb[i].num;
+                bb[i].curbacknum = bb[i].backnum;
+
+
                 while (true)
                 {
-                    if (i == procs - 1)
-                    {
-                        if (it == XRZ.end() )
-                        { break; }
-                    }
-                    else
-                    {
-                        if (it == ++XRZ.find(bb[i + 1].shiftr)) { break; }
-                    }
-                    (it)->second.R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
 
-                    if (XRZ.at(it->first).R > bb[i].R)
+
+                    double xr = bb[i].curnum->first;
+                    double xl = bb[i].curbacknum->first;
+                    double zr = bb[i].curnum->second.z;
+                    double zl = bb[i].curbacknum->second.z;
+
+                    double R = m * (xr - xl) + (((zr - zl) *
+                        (zr - zl)) / (m * (xr - xl))) -
+                        2 * (zr + zl);
+
+
+                    if (R > bb[i].R)
                     {
                         //////////////////////////////
-                        bb[i].R = XRZ.at(it->first).R;
-                        bb[i].num = it;
-                        bb[i].backnum = back;
+
+                        bb[i].R = R;
+                        bb[i].num = bb[i].curnum;
+                        bb[i].backnum = bb[i].curbacknum;
+
+
                         /////////////////////////////////
                     }
+                    ++bb[i].curnum;
+                    ++bb[i].curbacknum;
 
-                    itcurE = it->first - back->first;//точность на текущем итервале
-                    if (itcurE < currentE)
-                    {
-                        currentE = itcurE;//точность решения
-                    }
-                    ++it; ++back;
+                    if (bb[i].curbacknum->first == bb[i].shiftr) { break; }
+
                 }
-            }
 
-            if (currentE <= E)//выход по точности
-            {
-                break;
-            }
 
+
+            }
             ///////////////////////////////////////
+
             for (int i = 0; i < procs; i++)
             {
                 if (maxR < bb[i].R)
@@ -125,59 +175,55 @@ global::Pointer global::PP()
                 }
 
             }
+
             ///////////////////////////////////////
         }
-        else
+        else//если недостаточно интервалов или procs==1
         {
+            double xr;
+            double xl;
+            double zr;
+            double zl;
+            double R;
             for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin() // Определение интервала с максимальным R
                 ; it != XRZ.end();
                 ++back, ++it
                 )
             {
-                (it)->second.R = Calculate_R(m, it, back);//подсчёт R в текущем интервале
 
-                if (XRZ.at(it->first).R > maxR)
+                xr = it->first;
+                xl = back->first;
+                zr = it->second.z;
+                zl = back->second.z;
+                R = m * (xr - xl) + (((zr - zl) *
+                    (zr - zl)) / (m * (xr - xl))) -
+                    2 * (zr + zl);
+
+                if (R > maxR)
                 {
-                    maxR = XRZ.at(it->first).R;
+                    maxR = R;
                     num = it;//запоминаю номер интервала (индекс его правой границы)
                     backnum = back;
 
                 }
+            }
 
-                itcurE = it->first - back->first;//точность на текущем итервале
-                if (itcurE < currentE)
-                {
-                    currentE = itcurE;//точность решения
-                }
-            }
-            if (currentE <= E)//выход по точности
-            {
-                break;
-            }
+
         }
-    
         newX = Calculate_X(m, num, backnum);//нахожу следующую точку испытания в найденном интервале
-
-
                                             //заноc x и z в базу
         rz.R = 0;
         rz.z = func(newX);
         XRZ.insert(pair<double, RZ>(newX, rz));
 
-        if (XRZ.size() == procs+1)
+        currentE = newX - (--XRZ.find(newX))->first;
+        if (currentE <= E)//выход по точности
         {
-            int i = 0;
-                for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin()
-                    ; it != XRZ.end();
-                    ++back, ++it
-                    )
-                {
-                    bb[i].shiftl = back->first;
-                    bb[i].shiftr= it->first;
-                    i++;
-                }
-            
+            break;
         }
+
+
+
         point.steps++;
 
         if (point.steps == Nmax)//выход по числу шагов

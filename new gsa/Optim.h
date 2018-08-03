@@ -1,6 +1,4 @@
 #pragma once
-
-#pragma once
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
@@ -16,14 +14,24 @@ class global
 private:
 
     //рабочие структуры данных
-    
+
     struct RZ//—труктура дл€ контейнера в XRZ
     {
         double R, z;
     };
     std::map <double, RZ> XRZ;//база, содеражаща€ x, R , z 
                               //XRZ упор€дочена по возрастанию ключа х 
-                             
+
+    struct bord
+    {
+        double shiftl, shiftr;
+        double R, weight;
+
+        std::map <double, RZ>::iterator num;
+        std::map <double, RZ>::iterator backnum;
+        std::map <double, RZ>::iterator curnum;
+        std::map <double, RZ>::iterator curbacknum;
+    };
 
     //измен€емые переменные
     double currentE;//текуща€ точность решени€
@@ -36,7 +44,7 @@ private:
 
     double xl, xr, zl, zr;//переменные дл€ работы с итераторами
 
-    //целева€ функци€
+                          //целева€ функци€
     double func(const double x);
 
     //подсчЄт M на заданном интервале
@@ -58,7 +66,7 @@ public:
     double r;//параметр метода
     double E;//граница выхода по точности
     int Nmax;//граница выхода по числу шагов
-
+    int procs;
     double * coeff = new double[4];
 
     //—труктура дл€ хранени€ результата 
@@ -70,6 +78,10 @@ public:
 
     //последовательный решатель задачи
     Pointer Serial_Search();
+    Pointer PP();
+    int operations = 0;
+    double time, st, fn;
+    double   alltime = 0;
 };
 
 #endif
