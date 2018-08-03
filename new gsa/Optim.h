@@ -8,7 +8,8 @@
 #include <list>
 #include <omp.h>
 #include <map>
-
+#include "grishagin\include\grishagin_function.hpp"
+#include "evolv.h"
 class global
 {
 private:
@@ -72,13 +73,28 @@ public:
     //Структура для хранения результата 
     struct Pointer
     {
-        double x, z;
+        double x, y, z;
         int steps;
     };
+    inline double Func(const double *_y, vagrish::GrishaginFunction *func)
+    {
+        // _y[1] = y ; _y[0] = x;
+        //return 2 * cos(_y[1]) + 3 * sin(_y[0]); //y[-5,0] x[-4,2] examin ~= (x_1.6 , y_-3.1)
 
-    //последовательный решатель задачи
-    Pointer Serial_Search();
-    Pointer PP();
+        //auto *func = new vagrish::GrishaginFunction();
+        //func->SetFunctionNumber(num);
+        //std::shared_ptr<IGOProblem<double>> problem;
+        //problem = std::shared_ptr<IGOProblem<double>>(func);
+
+        //double leftBound[2], rightBound[2];
+        //problem->GetBounds(leftBound, rightBound);
+        return func->Calculate(_y);
+
+    }
+
+    Pointer Serial_Search(); //последовательный решатель задачи
+    Pointer PP();//параллелльный
+    Pointer EV(double *leftBound, double *rightBound, vagrish::GrishaginFunction *func);
     int operations = 0;
     double time, st, fn;
     double   alltime = 0;
