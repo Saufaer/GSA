@@ -1,6 +1,4 @@
 #pragma once
-
-#pragma once
 #ifndef __GLOBAL_H__
 #define __GLOBAL_H__
 
@@ -19,14 +17,23 @@ private:
 
     struct RZ//Структура для контейнера в XRZ
     {
-        double R, z, proc;
+        double R, z;
     };
     std::map <double, RZ> XRZ;//база, содеражащая x, R , z 
                               //XRZ упорядочена по возрастанию ключа х 
 
+    struct bord
+    {
+        double shiftl, shiftr;
+        double R, weight;
 
+        std::map <double, RZ>::iterator num;
+        std::map <double, RZ>::iterator backnum;
+        std::map <double, RZ>::iterator curnum;
+        std::map <double, RZ>::iterator curbacknum;
+    };
 
-                              //изменяемые переменные
+    //изменяемые переменные
     double currentE;//текущая точность решения
 
     double newX;//новая точка х
@@ -72,6 +79,9 @@ public:
     //последовательный решатель задачи
     Pointer Serial_Search();
     Pointer PP();
+    int operations = 0;
+    double time, st, fn;
+    double   alltime = 0;
 };
 
 #endif

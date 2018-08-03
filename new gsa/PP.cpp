@@ -22,24 +22,87 @@ global::Pointer global::PP()
     map <double, RZ>::iterator backnum = (XRZ.begin());//итератор на его левую границу
     double maxR = Calculate_R(m, num, backnum);//инициализация временной макс R
 
-    double itcurE;//точность на текущем интервале
-
-
-                  //#pragma omp critical
-                  //    { double st = omp_get_wtime();
-                  //    double fn = omp_get_wtime();
-                  //    double time = fn - st;
-                  //    alltime += time;
-                  //    }
-
-
-                  //------------------------------------------------основной цикл алгоритма
+                                               //------------------------------------------------основной цикл алгоритма
 
     vector <bord> bb(procs);
     while (true)
     {
+
+        ////////////////////////////////////////////////////стартовое распределение
+
+
+        if (XRZ.size() == procs + 1)
+        {
+            int i = 0;
+            for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin()
+                ; it != XRZ.end();
+                ++back, ++it
+                )
+            {
+
+                bb[i].shiftl = back->first;
+                bb[i].shiftr = it->first;
+                bb[i].weight = 0;
+
+                i++;
+            }
+
+        }
+
+        //схема с весом
+
+        if (XRZ.size() > procs + 1)
+        {
+            for (int i = 0; i < procs; i++)
+            {
+                if ((newX < bb[i].shiftr) && (newX > bb[i].shiftl))//определение где новый х
+                {
+                    bb[i].weight++;
+
+
+                }
+
+                if ((i != procs - 1) && (bb[i].weight != 0))//узел i влево
+                {
+                    if (bb[i].weight > bb[i + 1].weight + 1)
+                    {
+
+                        bb[i].shiftr = (--(XRZ.find(bb[i].shiftr)))->first;
+                        bb[i + 1].shiftl = (--(XRZ.find(bb[i + 1].shiftl)))->first;
+                        bb[i].weight--;
+                        bb[i + 1].weight++;
+
+                        operations++;
+                    }
+                }
+                if ((i != procs - 1) && (bb[i + 1].weight != 0))
+                {
+
+                    if (bb[i].weight < bb[i + 1].weight - 1)
+                    {
+
+                        bb[i].shiftr = (++(XRZ.find(bb[i].shiftr)))->first;
+                        bb[i + 1].shiftl = (++(XRZ.find(bb[i + 1].shiftl)))->first;
+                        bb[i].weight++;
+                        bb[i + 1].weight--;
+
+                        operations++;
+                    }
+                }
+
+
+            }
+
+        }
+
+        /////////////////////////////////////////////////////
+
+
+
+
+
         maxR = (++(XRZ.begin()))->second.R;
-        m = Calculate_m();//поиск m       
+        m = Calculate_m();//поиск m 
         num = ++(XRZ.begin());
         backnum = XRZ.begin();
 
@@ -51,25 +114,29 @@ global::Pointer global::PP()
             {
 
 
-                bb[i].num = (++(XRZ.find(bb[i].shiftl)));
+                bb[i].num = ((XRZ.find(bb[i].shiftl)));
 
 
-                bb[i].backnum = ((XRZ.find(bb[i].shiftl)));
-
+                bb[i].backnum = bb[i].num;
+                ++bb[i].num;
 
                 bb[i].R = bb[i].num->second.R;
 
-                map <double, RZ>::iterator it, back;
 
-                it = bb[i].num; back = bb[i].backnum;
+
+                bb[i].curnum = bb[i].num;
+                bb[i].curbacknum = bb[i].backnum;
 
 
                 while (true)
                 {
-                    double xr = it->first;
-                    double xl = back->first;
-                    double zr = it->second.z;
-                    double zl = back->second.z;
+
+
+                    double xr = bb[i].curnum->first;
+                    double xl = bb[i].curbacknum->first;
+                    double zr = bb[i].curnum->second.z;
+                    double zl = bb[i].curbacknum->second.z;
+
                     double R = m * (xr - xl) + (((zr - zl) *
                         (zr - zl)) / (m * (xr - xl))) -
                         2 * (zr + zl);
@@ -80,25 +147,17 @@ global::Pointer global::PP()
                         //////////////////////////////
 
                         bb[i].R = R;
-                        bb[i].num = it;
-                        bb[i].backnum = back;
+                        bb[i].num = bb[i].curnum;
+                        bb[i].backnum = bb[i].curbacknum;
 
 
                         /////////////////////////////////
                     }
+                    ++bb[i].curnum;
+                    ++bb[i].curbacknum;
 
-                    ++it; ++back;
-                    if (i == procs - 1)
-                    {
-                        if (it == XRZ.end())
-                        {
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        if (it == ++XRZ.find(bb[i].shiftr)) { break; }
-                    }
+                    if (bb[i].curbacknum->first == bb[i].shiftr) { break; }
+
                 }
 
 
@@ -162,71 +221,7 @@ global::Pointer global::PP()
         {
             break;
         }
-        ////////////////////////////////////////////////////стартовое распределение
 
-        if (XRZ.size() == procs + 1)
-        {
-            int i = 0;
-            for (map <double, RZ>::iterator it = ++(XRZ.begin()), back = XRZ.begin()
-                ; it != XRZ.end();
-                ++back, ++it
-                )
-            {
-
-                bb[i].shiftl = back->first;
-                bb[i].shiftr = it->first;
-                bb[i].weight = 0;
-                i++;
-            }
-
-        }
-
-        //схема с весом
-
-        if (XRZ.size() > procs + 1)
-        {
-            for (int i = 0; i < procs; i++)
-            {
-                if ((newX < bb[i].shiftr) && (newX > bb[i].shiftl))//определение где новый х
-                {
-                    bb[i].weight++;
-
-                }
-
-                if ((i != procs - 1) && (bb[i].weight != 0))//узел i влево
-                {
-                    if (bb[i].weight > bb[i + 1].weight + 1)
-                    {
-
-                        bb[i].shiftr = (--(XRZ.find(bb[i].shiftr)))->first;
-                        bb[i + 1].shiftl = (--(XRZ.find(bb[i + 1].shiftl)))->first;
-                        bb[i].weight--;
-                        bb[i + 1].weight++;
-
-                        operations++;
-                    }
-                }
-                if ((i != procs - 1) && (bb[i + 1].weight != 0))
-                {
-
-                    if (bb[i].weight < bb[i + 1].weight - 1)
-                    {
-
-                        bb[i].shiftr = (++(XRZ.find(bb[i].shiftr)))->first;
-                        bb[i + 1].shiftl = (++(XRZ.find(bb[i + 1].shiftl)))->first;
-                        bb[i].weight++;
-                        bb[i + 1].weight--;
-
-                        operations++;
-                    }
-                }
-
-
-            }
-
-        }
-
-        /////////////////////////////////////////////////////
 
 
         point.steps++;
