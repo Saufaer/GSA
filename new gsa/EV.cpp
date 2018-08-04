@@ -1,14 +1,14 @@
 #include "Optim.h"
 using namespace std;
-global::Pointer global::EV(double *leftBound, double *rightBound,vagrish::GrishaginFunction *gfunc)
+global::PointerEV global::EV(double *leftBound, double *rightBound, vagrish::GrishaginFunction *gfunc)
 {
     TEvolvent evolve(2, 20); // объект развертки
 
     double *A = new double[2]; // ограничения слева
     double *B = new double[2]; // ограничения справа
 
-    A[0] = leftBound [0]; // x
-    A[1] = leftBound [1]; // y
+    A[0] = leftBound[0]; // x
+    A[1] = leftBound[1]; // y
     B[0] = rightBound[0]; // x
     B[1] = rightBound[1]; // y
 
@@ -16,17 +16,19 @@ global::Pointer global::EV(double *leftBound, double *rightBound,vagrish::Grisha
     double *y_arr = new double[2];
 
     double borders[2] = { A[0], A[1] };
-    
+
 
     RZ rz;//контейнер
-    Pointer point;//структура - результат
-    point.steps = 0;//шаги
-    //currentE = right - left; //текущая точность решения
+    PointerEV pointEv;//структура - результат
+    double x;
+    double y;
+    pointEv.steps = 0;//шаги
+    currentE = right - left; //текущая точность решения
     rz.z = Func(borders, gfunc);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(0, rz));
     borders[0] = B[0]; borders[1] = B[1];
-    rz.z =  Func(borders, gfunc);
+    rz.z = Func(borders, gfunc);
     rz.R = 0;
     XRZ.insert(pair<double, RZ>(1, rz));
 
@@ -228,14 +230,15 @@ global::Pointer global::EV(double *leftBound, double *rightBound,vagrish::Grisha
         newX = Calculate_X(m, num, backnum);//нахожу следующую точку испытания в найденном интервале
                                             //заноc x и z в базу
         evolve.GetImage(newX, y_arr);
-     
+
         rz.R = 0;
-        double x = y_arr[0];
-        double y = y_arr[1];
+        x = y_arr[0];
+        y = y_arr[1];
 
         rz.z = Func(y_arr, gfunc);
-        XRZ.insert(pair<double, RZ>(newX, rz));
 
+
+        XRZ.insert(pair<double, RZ>(newX, rz));
         currentE = newX - (--XRZ.find(newX))->first;
         if (currentE <= E)//выход по точности
         {
@@ -244,17 +247,18 @@ global::Pointer global::EV(double *leftBound, double *rightBound,vagrish::Grisha
 
 
 
-        point.steps++;
 
-        if (point.steps == Nmax)//выход по числу шагов
+        pointEv.steps++;
+
+        if (pointEv.steps == Nmax)//выход по числу шагов
         {
             break;
         }
     }
-
-    point.x = newX;
-    point.z = rz.z;
-    return point;
+    pointEv.x = x;
+    pointEv.y = y;
+    pointEv.z = rz.z;
+    return pointEv;
 
 
 }
