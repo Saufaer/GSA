@@ -1,1 +1,1 @@
-# numerical-methods
+# GLOBAL SEARCH ALGORITMS
